@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ciudad } from './entities/ciudad.entity';
-import { FindOneOptions, PrimaryColumnCannotBeNullableError, Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { CiudadDto } from './dto/ciudad.dto';
 
 @Injectable()
@@ -47,11 +47,11 @@ export class CiudadService {
 
   }
 
-  async create(CiudadDto: CiudadDto): Promise<CiudadDto> {
+  async create(CiudadDto: CiudadDto): Promise<Ciudad> {
     try {
       let ciudad: Ciudad = await this.ciudadRepository.save(new Ciudad(CiudadDto.nombre));
       if (ciudad)
-        return CiudadDto;
+        return ciudad;
       else
         throw new Error('No se pudo crear la ciudad!');
     }
@@ -64,6 +64,57 @@ export class CiudadService {
 
   }
 
+  async update(CiudadDto: CiudadDto, id: number): Promise<String> {
 
+    try {
+      const criterio: FindOneOptions = { where: { id: id } };
+      let ciudad: Ciudad = await this.ciudadRepository.findOne(criterio);
+
+
+      if (!ciudad)
+        throw new Error('no se pudo encontrar la ciudad a modificar');
+      else {
+        let datoViejo = ciudad.getNombre();
+        ciudad.setNombre(CiudadDto.nombre);
+        ciudad = await this.ciudadRepository.save(ciudad);
+        return `ok ${datoViejo} --> ${CiudadDto.nombre}`;
+      }
+
+    }
+
+    catch (error) {
+      throw new HttpException({
+        status: HttpStatus.NOT_FOUND,
+        error: 'Error de ciudad - ' + error
+      }, HttpStatus.NOT_FOUND)
+    }
+    
+
+
+  }
+
+  async delete(id: number): Promise<any> {
+    try {
+      const criterio: FindOneOptions = { where: { id: id } };
+      let ciudad: Ciudad = await this.ciudadRepository.findOne(criterio);
+      if (!ciudad)
+        throw new Error(' se elimino ciudad o no existe ');
+      else {
+        await this.ciudadRepository.remove(ciudad);
+        return {
+          id: id,
+          message: `se elimino exitosamente`
+        }
+      }
+
+    }
+    catch (error) {
+      throw new HttpException({
+        status: HttpStatus.NOT_FOUND,
+        error: 'Error en ciudad - ' + error
+      }, HttpStatus.NOT_FOUND)
+    }
+
+  }
 
 }
