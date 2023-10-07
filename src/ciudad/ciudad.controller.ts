@@ -24,7 +24,7 @@ export class CiudadController {
   }
 
   @Post('crear')
-  async crearCiudad(@Body() CiudadDto: CiudadDto): Promise<CiudadDto> {
+  async crearCiudad(@Body() CiudadDto: CiudadDto): Promise<Ciudad> {
     return this.ciudadService.create(CiudadDto);
   }
 
